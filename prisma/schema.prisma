@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+  // "native" for local dev; rhel-openssl-3.0.x is the Linux runtime used by Vercel.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Used by the app. On a pooled host (e.g. Neon) this can be the pooled connection string.
+  url       = env("DATABASE_URL")
+  // Used by `prisma migrate`. Must be a direct (non-pooled) connection. Same value as DATABASE_URL locally.
+  directUrl = env("DIRECT_URL")
+}
+
+// All money fields are integer sen (RM 6.90 -> 690).
+
+model Product {
+  id         Int      @id @default(autoincrement())
+  slug       String   @unique
+  name       String
+  size       String
+  category   String   // dishwashing | laundry | bleach | floor | bathroom | general
+  bullets    String   // JSON array of strings
+  priceSen   Int
+  badge      String?
+  active     Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  bundleItems BundleItem[]
+  orderItems  OrderItem[]
+}
+
+model Bundle {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  name        String
+  description String?
+  priceSen    Int      // fixed bundle price
+  badge       String?
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  items       BundleItem[]
+  orderItems  OrderItem[]
+}
+
+model BundleItem {
+  id        Int     @id @default(autoincrement())
+  bundleId  Int
+  productId Int
+  quantity  Int     @default(1)
+  bundle    Bundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id             Int      @id @default(autoincrement())
+  number         String   @unique
+  status         String   // PENDING | PAID | WHATSAPP | CANCELLED
+  paymentMethod  String   // ONLINE | WHATSAPP
+  customerName   String
+  phone          String
+  email          String?
+  address        String
+  area           String
+  notes          String?
+  subtotalSen    Int
+  deliveryFeeSen Int
+  totalSen       Int
+  paymentRef     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  items          OrderItem[]
+}
+
+model OrderItem {
+  id           Int      @id @default(autoincrement())
+  orderId      Int
+  productId    Int?
+  bundleId     Int?
+  name         String   // snapshot at time of order
+  unitPriceSen Int
+  quantity     Int
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product? @relation(fields: [productId], references: [id])
+  bundle       Bundle?  @relation(fields: [bundleId], references: [id])
+}

@@ -1,0 +1,16 @@
+# Local PostgreSQL for development. Start it with: npm run db:up
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: cleanhome-db
+    environment:
+      POSTGRES_USER: cleanhome
+      POSTGRES_PASSWORD: cleanhome
+      POSTGRES_DB: cleanhome
+    ports:
+      - "5433:5432"
+    volumes:
+      - cleanhome-db:/var/lib/postgresql/data
+
+volumes:
+  cleanhome-db:
