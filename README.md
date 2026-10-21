@@ -27,6 +27,8 @@ Other scripts: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`,
 
 > The database uses port **5433** so it doesn't clash with a PostgreSQL already installed on your machine (port 5432).
 
+**`PrismaClientInitializationError` on every page?** The database isn't reachable. Usually Docker Desktop isn't running: start it, then `npm run db:up`. If the tables are missing (for example after Docker was reset), run `npx prisma migrate deploy` and `npm run db:seed` again.
+
 ## Deploy to Vercel
 
 ### 1. Database
